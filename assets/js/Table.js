@@ -15,28 +15,44 @@ class Table extends DB {
             ]);
         });
         this.selectRow(tableName);
+        this.clearField();
     }
 
-    selectRow(tableName) {
+    clearField(){
+        inputId.value = '';
+        inputDate.value = '';
+        inputSupplier.value = '';
+        inputWarehouse.value = '';
+        inputNameProduct.value = '';
+        inputCount.value = '';
+        inputTotal.value = '';
+    }
+
+    selectRow(tableName, query = `SELECT * from ${tableName}`, params = []) {
         const dataRow = document.querySelector('#data-row');
-        dataRow.innerHTML='';
+        dataRow.innerHTML = '';
+        console.log(query);
         this.connect.transaction((tx) => {
-            tx.executeSql(`SELECT * from ${tableName}`, [], (tx, result) => {
+            tx.executeSql(query, params, (tx, result) => {
                 for (let i = 0; i < result.rows.length; i++) {
                     let item = result.rows.item(i);
                     let row = document.createElement('tr');
                     let btnEdit = createBtn('btn btn-warning', 'Изменить');
                     let btnDelete = createBtn('btn btn-danger', 'Удалить');
-                    btnEdit.addEventListener('click', (e)=>{
+
+                    //Обновление записи
+                    btnEdit.addEventListener('click', (e) => {
                         e.preventDefault();
                         this.updateRow(tableName, item.id);
                     });
-                    btnDelete.addEventListener('click', (e)=>{
+
+                    //Удаление записи
+                    btnDelete.addEventListener('click', (e) => {
                         e.preventDefault();
                         this.deleteRow(tableName, item.id);
                         this.selectRow(tableName);
                     })
-                        row.innerHTML = `
+                    row.innerHTML = `
                                 <td>${item.id}</td>
                                 <td>${new Date(item.data).toLocaleDateString()}</td>
                                 <td>${item.supplier}</td>
@@ -53,105 +69,73 @@ class Table extends DB {
         });
     }
 
-    deleteRow(tableName, id){
+    deleteRow(tableName, id) {
         this.connect.transaction(function (tx) {
             tx.executeSql(`DELETE FROM ${tableName} WHERE id=?;`, [id]);
         });
     }
 
-    updateRow(tableName, id){
-        this.connect.transaction((tx) => {
-            tx.executeSql(`SELECT * from ${tableName} WHERE id=?`, [id], (tx, result) => {
-                for (let i = 0; i < result.rows.length; i++) {
-                    let item = result.rows.item(i);
+    updateRow(tableName, id, boolean = false) {
+        if (!boolean) {
+            this.connect.transaction((tx) => {
+                tx.executeSql(`SELECT * from ${tableName} WHERE id=?`, [id], (tx, result) => {
+                    const item = result.rows[0];
+                    console.log(item);
+                    inputDate.value = item.data;
+                    inputSupplier.value = item.supplier;
+                    inputWarehouse.value = item.warehouse;
+                    inputNameProduct.value = item.name_product;
+                    inputCount.value = item.count;
+                    inputTotal.value = item.total;
+                    inputId.value = item.id;
 
-                }
+                    createRow.classList.add('d-none');
+                    updateRow.classList.remove('d-none');
+                })
             })
-        })
+        } else {
+
+            this.connect.transaction((tx) => {
+                tx.executeSql(`UPDATE ${tableName} SET data=?, supplier =?, warehouse=?, name_product=?, count=?, total=? WHERE id=?;`, 
+                [inputDate.value, inputSupplier.value, inputWarehouse.value,
+                    inputNameProduct.value, inputCount.value, inputTotal.value, inputId.value
+                ]);
+                this.selectRow(tableName);
+                this.clearField();
+                createRow.classList.remove('d-none');
+                updateRow.classList.add('d-none');
+            });
+
+        }
+    }
+
+    filterRow(tableName){
+        let query = `SELECT * from ${tableName}`;
+        let params = [];
+        if (filterDate.value !== '') {
+            query += ' WHERE data=?';
+            params.push(filterDate.value);
+        }
+        if (filterSupplier.value !== '') {
+            query += ' WHERE supplier LIKE ?';
+            params.push(`%${filterSupplier.value}%`);
+        }
+        if (filterWarehouse.value !== '') {
+            query += ' WHERE warehouse LIKE ?';
+            params.push(`%${filterWarehouse.value}%`);
+        }
+        if (filterNameProduct.value !== '') {
+            query += ' WHERE name_product LIKE ?';
+            params.push(`%${filterNameProduct.value}%`);
+        }
+        if (filterCount.value !== '') {
+            query += ' WHERE count >= ?';
+            params.push(filterCount.value);
+        }
+        if (filterTotal.value !== '') {
+            query += ' WHERE total >= ?';
+            params.push(filterTotal.value);
+        }
+        this.selectRow(tableName, query, params)
     }
 }
-
-function createBtn(classList, value) {
-    let td = document.createElement('td');
-    let btn = document.createElement('button');
-    btn.className  = classList;
-    btn.innerText = value;
-    td.append(btn);
-    return td;
-}
-
-
-// function UpdateValue() {
-//     let thisname = document.getElementById("tx1").value;
-//     let thisvalue = document.getElementById("tx2").value;
-//     let thisdata = document.getElementById("tx3").value;
-//     if ((thisname == '') || (thisvalue == '') || (thisdata == '')) {
-//         alert('Необходимо заполнить поля ключ и значение');
-//         return;
-//     }
-
-//     let db = openDatabase('db', '1.0', 'my first database', 2 * 1024 * 1024);
-//     db.transaction(function (tx) {
-//         tx.executeSql('UPDATE t1 SET value=? WHERE name=? WHERE data=?;', [thisvalue, thisname, thisdata]);
-//     });
-//     alert('Значения обновлены');
-// }
-
-// function DeleteRow() {
-//     let thisname = document.getElementById("tx1").value;
-//     let thisvalue = document.getElementById("tx2").value;
-//     let thisdata = document.getElementById("tx3").value;
-//     if ((thisname == '') && (thisvalue == '') && (thisdata == '')) {
-//         alert('Необходимо заполнить поля ключ или значение');
-//         return;
-//     }
-
-//     let db = openDatabase('db', '1.0', 'my first database', 2 * 1024 * 1024);
-//     db.transaction(function (tx) {
-//         if (thisname != '') {
-//             tx.executeSql('DELETE FROM t1 WHERE name=?;', [thisname]);
-//         }
-//     });
-
-//     db.transaction(function (tx) {
-//         if (thisvalue != '') {
-//             tx.executeSql('DELETE FROM t1 WHERE value=?;', [thisvalue]);
-//         }
-//     });
-//     db.transaction(function (tx) {
-//         if (thisdata != '') {
-//             tx.executeSql('DELETE FROM t1 WHERE data=?;', [thisdata]);
-//         }
-//     });
-//     alert('Строка удалена');
-// }
-
-// function OutRow(id, name, value, data) {
-//     let row = document.createElement("tr");
-//     let idCell = document.createElement("td");
-//     let nameCell = document.createElement("td");
-//     let valueCell = document.createElement("td");
-//     let dataCell = document.createElement("td");
-//     idCell.textContent = id;
-//     nameCell.textContent = name;
-//     valueCell.textContent = value;
-//     dataCell.textContent = data;
-//     row.appendChild(idCell);
-//     row.appendChild(nameCell);
-//     row.appendChild(valueCell);
-//     row.appendChild(dataCell);
-//     document.getElementById("tabletable").appendChild(row);
-// }
-
-// function DoSelect() {
-//     let db = openDatabase('db', '1.0', 'my first database', 2 * 1024 * 1024);
-//     document.getElementById("tabletable").innerHTML = '<th>Id</th> <th>Name</th> <th>Value</th> <th>Дата</th>';
-//     db.transaction(function (tx) {
-//         tx.executeSql('SELECT * from t1', [], function (tx, result) {
-//             for (let i = 0; i < result.rows.length; i++) {
-//                 let item = result.rows.item(i);
-//                 OutRow(item.id, item.name, item.value, item.data);
-//             }
-//         });
-//     });
-// }
