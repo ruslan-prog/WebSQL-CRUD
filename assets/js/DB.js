@@ -12,6 +12,8 @@ class DB {
             tx.executeSql(`CREATE TABLE IF NOT EXISTS ${nametable} (id integer primary key autoincrement, data, supplier, warehouse , name_product, count integer, total integer)`);
         });
     }
+
+    //Удаление таблицы
     _removeTable(nametable){
         this.connect.transaction(function (tx)
         {
@@ -19,4 +21,10 @@ class DB {
         });
         alert('Таблица удалена');
     }
+
+    //Печать таблицы которая на экране
+    _printTable(nametable){
+        window.print();
+    }
+
 }

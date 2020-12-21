@@ -5,6 +5,7 @@ const btnCreate = document.querySelector('#create-table'); // Созадние �
 const btnRemove = document.querySelector('#remove-table'); // Удаление таблицы product
 const updateRow = document.querySelector('#update-row'); //
 const createRow = document.querySelector('#create-row'); //
+const printTable = document.querySelector('#print-table'); //Печать таблицы product
 
 const dataRow = document.querySelector('#data-row'); // Tbody таблицы
 //Элементы формы
@@ -51,6 +52,10 @@ updateRow.addEventListener('click', (e) => {
     e.preventDefault();
     let id = inputId.value;
     table.updateRow('product', id, true);
+})
+
+printTable.addEventListener('click', () => {
+    db._printTable('product');
 })
 
 filterDate.addEventListener('input', ()=>{

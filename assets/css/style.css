@@ -1,0 +1,12 @@
+@media print {
+    #filter-block, #block-form, 
+    #tabletable td:nth-child(8),
+    #tabletable td:nth-child(9),
+    #tabletable th:nth-child(8),
+    #tabletable th:nth-child(9){
+        display: none;
+    }
+    *{
+        color: black;
+    }
+}

@@ -112,30 +112,72 @@ class Table extends DB {
     filterRow(tableName){
         let query = `SELECT * from ${tableName}`;
         let params = [];
+        let flag = false; 
         if (filterDate.value !== '') {
             query += ' WHERE data=?';
             params.push(filterDate.value);
+            flag = true;
         }
         if (filterSupplier.value !== '') {
-            query += ' WHERE supplier LIKE ?';
+            if (flag) {
+                query+=' AND supplier LIKE ?'
+            } else{
+                query += ' WHERE supplier LIKE ?';
+            }            
             params.push(`%${filterSupplier.value}%`);
+            flag = true;
         }
         if (filterWarehouse.value !== '') {
-            query += ' WHERE warehouse LIKE ?';
+            if (flag) {
+                query+=' AND warehouse LIKE ?'
+            } else {
+                query += ' WHERE warehouse LIKE ?';
+            }
+            
             params.push(`%${filterWarehouse.value}%`);
+            flag = true;
         }
         if (filterNameProduct.value !== '') {
-            query += ' WHERE name_product LIKE ?';
+            if (flag) {
+                query+=' AND name_product LIKE ?'
+            } else {
+                query += ' WHERE name_product LIKE ?';
+            }
+            
             params.push(`%${filterNameProduct.value}%`);
+            flag = true;
         }
         if (filterCount.value !== '') {
-            query += ' WHERE count >= ?';
+            if (flag) {
+                query+=' AND count >= ?'
+            } else {
+                query += ' WHERE count >= ?';
+            }
+            
             params.push(filterCount.value);
+            flag = true;
         }
         if (filterTotal.value !== '') {
-            query += ' WHERE total >= ?';
+            if (flag) {
+                query+=' AND total >= ?'
+            } else{ 
+                query += ' WHERE total >= ?';
+            }
+            
             params.push(filterTotal.value);
+            flag = true;
         }
-        this.selectRow(tableName, query, params)
+        console.log(query);
+        this.selectRow(tableName, query, params);
+
     }
+}
+
+function createBtn(classList, value) {
+    let td = document.createElement('td');
+    let btn = document.createElement('button');
+    btn.className  = classList;
+    btn.innerText = value;
+    td.append(btn);
+    return td;
 }
